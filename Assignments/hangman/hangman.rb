@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'csv'
 
 class Hangman
   def initialize
@@ -9,7 +10,6 @@ class Hangman
     @word = ''
     @guess = ''
     @round = 1
-    @chosen = Hash.new(false)
   end
 
   def start_game
@@ -39,8 +39,7 @@ class Hangman
     loop do
       puts 'pick a letter not already chosen or enter -1 to save game'
       input = gets.chomp
-      if input.match(/a-zA-Z/) && @chosen[input] == false
-        @chosen[input] = true
+      if input.match(/a-zA-Z/) && @guess.match?(/#{input}/)
         return input
       elsif input == '-1'
         save_game
@@ -61,7 +60,22 @@ class Hangman
   end
 
   def load_game
+    found = false
+    contents = CSV.open(
+      'saves/games.csv',
+      headers: true,
+      header_converters: :symbol
+    )
 
+    contents.each do |row|
+      next unless @name == row[:name]
+
+      found = true
+      @word = row[:word]
+      @guess = row[:guess]
+      @round = row[:round]
+    end
+    start_game unless found
   end
 
   def check_results
